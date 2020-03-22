@@ -13,6 +13,14 @@ Software:
 
 ## Usage
 
+**Download**
+
+```bash
+# Clone github repository
+$ git clone https://github.com/ulaladungdung/e2i-automation.git
+$ python ./automate.py -i ./inputdata.xlsx -o ./outputdata.xlsx
+```
+
 **Arguments**: 
 
 - `-o` or `-O`  output file path
@@ -21,8 +29,4 @@ Software:
 **Note**:
 
 ​      The output file will be overwritten.
-
-**Example**:
-
-​      `$ python ./automate.py -i inputdata.xlsx -o outputdata.xlsx`
 
