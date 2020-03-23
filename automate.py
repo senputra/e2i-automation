@@ -15,7 +15,83 @@ def padDict(d, pad=""):
     return d
 
 
+def append_df_to_excel(filename, df=None, sheet_name='Sheet1', startrow=None,
+                       truncate_sheet=False,
+                       **to_excel_kwargs):
+    """
+    Append a DataFrame [df] to existing Excel file [filename]
+    into [sheet_name] Sheet.
+    If [filename] doesn't exist, then this function will create it.
+
+    Parameters:
+      filename : File path or existing ExcelWriter
+                 (Example: '/path/to/file.xlsx')
+      df : dataframe to save to workbook
+      sheet_name : Name of sheet which will contain DataFrame.
+                   (default: 'Sheet1')
+      startrow : upper left cell row to dump data frame.
+                 Per default (startrow=None) calculate the last row
+                 in the existing DF and write to the next row...
+      truncate_sheet : truncate (remove and recreate) [sheet_name]
+                       before writing DataFrame to Excel file
+      to_excel_kwargs : arguments which will be passed to `DataFrame.to_excel()`
+                        [can be dictionary]
+
+    Returns: None
+    """
+    from openpyxl import load_workbook
+
+    import pandas as pd
+
+    # ignore [engine] parameter if it was passed
+    if 'engine' in to_excel_kwargs:
+        to_excel_kwargs.pop('engine')
+
+    writer = pd.ExcelWriter(filename, engine='openpyxl')
+
+    # Python 2.x: define [FileNotFoundError] exception if it doesn't exist
+    try:
+        FileNotFoundError
+    except NameError:
+        FileNotFoundError = IOError
+
+    try:
+        # try to open an existing workbook
+        writer.book = load_workbook(filename)
+
+        # get the last row in the existing Excel sheet
+        # if it was not specified explicitly
+        if startrow is None and sheet_name in writer.book.sheetnames:
+            startrow = writer.book[sheet_name].max_row
+
+        # truncate sheet
+        if truncate_sheet and sheet_name in writer.book.sheetnames:
+            # index of [sheet_name] sheet
+            idx = writer.book.sheetnames.index(sheet_name)
+            # remove [sheet_name]
+            writer.book.remove(writer.book.worksheets[idx])
+            # create an empty sheet [sheet_name] using old index
+            writer.book.create_sheet(sheet_name, idx)
+
+        # copy existing sheets
+        writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+    except FileNotFoundError:
+        # file does not exist yet, we will create it
+        pass
+
+    if startrow is None:
+        startrow = 0
+
+    return writer, startrow
+    # # write out the new sheet
+    # df.to_excel(writer, sheet_name, startrow=startrow, **to_excel_kwargs)
+
+    # # save the workbook
+    # writer.save()
+
+
 def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=[
+    'No',
     'Serial No',
     'Name (as per NRIC)',
     'NRIC',
@@ -33,7 +109,8 @@ def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=
 
     import pandas as pd
 
-    rowIndex = 0
+    writer, startRow = append_df_to_excel(outputFilePath, sheet_name="Sheet1")
+    rowIndex = startRow
     outDict = newDict(a)
 
     # Get Excel Book
@@ -44,11 +121,13 @@ def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=
     for datasheetName in datasheetNames:
         # setup dictionary for the output file
         # print(outDict)
+        outDict['No'].append(rowIndex)
         outDict['Serial No'].append(0)
         rowIndex += 1
 
         df = xls.parse(datasheetName, header=None)
         convDict = df.to_dict()
+        # populate the new dictionary with the data looped from input file
         for index, key in convDict[0].items():
             if outDict.get(str(convDict[0][index]).strip(), [-1]) != [-1]:
                 outDict[str(convDict[0][index]).strip()
@@ -57,50 +136,43 @@ def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=
         outDict = padDict(outDict)
 
     outDf = pd.DataFrame(data=outDict, index=None)
-    with pd.ExcelWriter('output.xlsx', mode='w') as writer:
-        outDf.to_excel(writer, sheet_name='FINAL')
+    if startRow == 0:
+        outDf.to_excel(writer, "Sheet1", startrow=startRow, index=None)
+    else:
+        outDf.to_excel(writer, "Sheet1", startrow=startRow,
+                       index=None, header=None)
+
+    # save the workbook
+    writer.save()
     return outDf
 
 
 if __name__ == "__main__":
     import sys
-    args = sys.argv
+    import argparse
 
-    outputFilePath = None
+    def getOptions(args=sys.argv[1:]):
+        parser = argparse.ArgumentParser(
+            description="Excel automation script.")
+        parser.add_argument("-i", "--input", help="Your input file.")
+        parser.add_argument(
+            "-o", "--output", help="Your destination output file. Default is 'outputdata.xlsx'")
+        options = parser.parse_args(args)
+        return options, parser
+
+    options, parser = getOptions(sys.argv[1:])
+
+    outputFilePath = 'outputdata.xlsx'
     inputFilePath = None
 
-    helpMessage = """
-        Arguments: 
-            -o or -O    output file path
-            -i or -I    input file path
+    inputFilePath = options.input if options.input is not None else None
+    outputFilePath = options.output if options.output is not None else outputFilePath
 
-        Note:
-            The output file will be overwritten.\
+    if not bool(outputFilePath and inputFilePath):
+        print(parser.print_help())
+        sys.exit()
 
-        Example:
-            $ python ./automate.py -i inputdata.xlsx -o outputdata.xlsx
-        """
-
-    if len(args) == 1:
-        print(helpMessage)
-        sys.exit(0)
-
-    if "-o" in args or "-O" in args:
-        try:
-            outputFilePath = args[args.index("-o") + 1]
-        except:
-            outputFilePath = args[args.index("-O") + 1]
-
-    if "-i" in args or "-I" in args:
-        try:
-            inputFilePath = args[args.index("-i") + 1]
-        except:
-            inputFilePath = args[args.index("-I") + 1]
-
-    if not (outputFilePath and inputFilePath):
-        print(helpMessage)
-
-    print("processing {}. Output file can be found at {}".format(inputFilePath, outputFilePath))
+    print("Processing {}. Output file can be found at {}".format(
+        inputFilePath, outputFilePath))
     convert(inputFilePath, outputFilePath)
     print("Done")
-
