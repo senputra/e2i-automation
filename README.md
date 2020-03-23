@@ -34,13 +34,7 @@ on `line 5` above use
 $ python ./automate.py -i ./input_file_name.xlsx
 ```
 
-The output file will be `outputdata.xlsx` in the same folder.
-
-### Use case #2 (Input file and output file are specified)
-
-``` bash
-$ python ./automate.py -i ./input_file_name.xlsx -o ./output_file_name.xlsx`
-```
+The output file will be set to the default file `Consolidated_data.xlsx` in the same folder.
 
 The output file will be `output_file_name.xlsx`. 
 
@@ -58,8 +52,8 @@ $ python ./automate.py -i ./inputdata.xlsx -o ./outputdata.xlsx
 
 **Arguments**: 
 
-- `-o` or `-O`  output file path
-- `-i` or `-I ` input file path
+- `-o` output file path
+- `-i` input file path
 
 **Note**:
 
