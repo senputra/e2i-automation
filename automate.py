@@ -1,3 +1,10 @@
+from openpyxl import load_workbook
+import pandas as pd
+
+import sys
+import argparse
+
+
 def newDict(a):
 
     # Populating the initial dictionary with empty list
@@ -8,7 +15,7 @@ def newDict(a):
 
 
 def padDict(d, pad=""):
-    length = len(d['Serial No'])
+    length = len(d['Submission ID'])
     for key, value in d.items():
         if len(value) < length:
             d[key].append(pad)
@@ -39,9 +46,7 @@ def append_df_to_excel(filename, df=None, sheet_name='Sheet1', startrow=None,
 
     Returns: None
     """
-    from openpyxl import load_workbook
 
-    import pandas as pd
 
     # ignore [engine] parameter if it was passed
     if 'engine' in to_excel_kwargs:
@@ -92,22 +97,23 @@ def append_df_to_excel(filename, df=None, sheet_name='Sheet1', startrow=None,
 
 def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=[
     'No',
-    'Serial No',
-    'Name (as per NRIC)',
-    'NRIC',
-    'Address (as per NRIC)',
-    'Mailing Address',
-    'Contact Number (Residence)',
-    'Contact Number (Mobile)',
-    'Email address',
+    'Submission ID',
+    'Name (As per NRIC)',
+    'NRIC number',
+    'Address (As per NRIC)',
+    'Mailing address',
+    'Contact number (Residential)',
+    'Contact number (Mobile)',
+    'Email',
     'SSIC',
-    'UEN number',
-    'Mode of payment',
-    'Name (as per bank book)',
+    'NTUC Union Membership',
+    'Apply Membership?﻿',
+    'Preferred mode of payment',
+    'Name (as per Bank record)',
     'Bank name',
-        'Bank account number']):
+    'Bank account number',
+    'ACKNOWLEDGEMENT']):
 
-    import pandas as pd
 
     writer, startRow = append_df_to_excel(outputFilePath, sheet_name="Sheet1")
     rowIndex = startRow
@@ -122,7 +128,7 @@ def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=
         # setup dictionary for the output file
         # print(outDict)
         outDict['No'].append(rowIndex)
-        outDict['Serial No'].append(0)
+        # outDict['Serial No'].append(0)
         rowIndex += 1
 
         df = xls.parse(datasheetName, header=None)
@@ -148,9 +154,7 @@ def convert(inputFilePath='inputdata.xlsx', outputFilePath='outputData.xlsx', a=
 
 
 if __name__ == "__main__":
-    import sys
-    import argparse
-
+   
     def getOptions(args=sys.argv[1:]):
         parser = argparse.ArgumentParser(
             description="Excel automation script.")
@@ -162,7 +166,7 @@ if __name__ == "__main__":
 
     options, parser = getOptions(sys.argv[1:])
 
-    outputFilePath = 'outputdata.xlsx'
+    outputFilePath = '../outputdata.xlsx'
     inputFilePath = None
 
     inputFilePath = options.input if options.input is not None else None
