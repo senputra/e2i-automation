@@ -4,7 +4,7 @@ This python script converts a multiple tab excel file in to a single tab excel f
 
 There has been some changes in the requirements from e2i side. This README file only covers the new version of the whole project. 
 
-ps: (link to the outdated readme)[https://github.com/ulaladungdung/e2i-automation/blob/master/README(Outdated).md]
+ps: [link to the outdated readme](https://github.com/ulaladungdung/e2i-automation/blob/master/README(Outdated).md)
 
 ## Pre requisite
 
