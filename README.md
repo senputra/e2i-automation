@@ -1,6 +1,6 @@
 # e2i Automation Project
 
-This python script converts a multiple tab excel file in to a single tab excel file. 
+This repo containts a compilation of automation scripts requested by e2i.
 
 There has been some changes in the requirements from e2i side. This README file only covers the new version of the whole project. 
 
